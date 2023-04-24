@@ -1,6 +1,9 @@
 from gekko import GEKKO
 import numpy as np
 import random
+import tester
+import tester_arg
+
 
 def sdn_opt():
     # Initialize Model
@@ -35,7 +38,6 @@ def sdn_opt():
     locations = {0: (87.13480429958184, 131.46035514677558), 1: (71.9067902975842, 99.83029253343719),
                   2: (77.73349581052071, 119.17652894822236), 3: (34.78931461059261, 1.5007109517516648),
                   4: (38.911456566397185, 135.4659654996168), 5: (63.77012157403705, 123.31182629614602)}
-
 
     # Define the distance matrix as a 2D array
     d = np.zeros((len(switches), len(switches)))
@@ -84,11 +86,13 @@ def sdn_opt():
             for k in range(num_switches):
                 # obj = m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
                 obj += m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
+                #obj += m.sum([d[i][k] * p[k][j] * z[i][j]])
 
     m.Obj(obj)
     m.options.SOLVER = 1
     m.solve(disp=True)
 
+    tester.test_opt()
     print("Switches assignment: \n", z)
     print("\nControllers placement: \n", p)
 
@@ -97,6 +101,8 @@ def sdn_opt():
     else:
         print("Solution not found")
 
+    tester_min = tester_arg.test_opt(num_switches, num_controllers, d, max_load, switch_loads)
+    print("Minimum distance: ", tester_min)
 
 if __name__ == '__main__':
     sdn_opt()
