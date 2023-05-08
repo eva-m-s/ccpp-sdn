@@ -3,6 +3,7 @@ import numpy as np
 import random
 import tester
 import tester_arg
+import algorithm
 
 
 def sdn_opt():
@@ -10,15 +11,17 @@ def sdn_opt():
     m = GEKKO(remote=False)
 
     # Define the number of switches and controllers
-    num_switches = 6
+    num_switches = 4
     num_controllers = 2
 
     # Define the maximum load for each controller
-    max_load = [20, 30]
+    #max_load = [20, 30]
+    max_load = np.random.randint(20, 51, size=num_controllers)
+
 
     # Define the loads needed to control each switch
-    # switch_loads = np.random.randint(1, sum(max_load)/num_switches, size=num_switches)
-    switch_loads = [6, 7, 8, 5, 9, 4]
+    switch_loads = np.random.randint(1, sum(max_load)/num_switches, size=num_switches)
+    # switch_loads = [6, 7, 8, 5, 9, 4]
 
     # Create set of switches
     switches = list(range(num_switches))
@@ -28,16 +31,16 @@ def sdn_opt():
     y_range = (0, 180)
 
     # Assign a location to each switch
-    # locations = {}
-    # for switch in switches:
-    #     x = random.uniform(x_range[0], x_range[1])
-    #     y = random.uniform(y_range[0], y_range[1])
-    #     locations[switch] = (x, y)
-    # # print(locations)
+    locations = {}
+    for switch in switches:
+        x = random.uniform(x_range[0], x_range[1])
+        y = random.uniform(y_range[0], y_range[1])
+        locations[switch] = (x, y)
+    # print(locations)
 
-    locations = {0: (87.13480429958184, 131.46035514677558), 1: (71.9067902975842, 99.83029253343719),
-                  2: (77.73349581052071, 119.17652894822236), 3: (34.78931461059261, 1.5007109517516648),
-                  4: (38.911456566397185, 135.4659654996168), 5: (63.77012157403705, 123.31182629614602)}
+    # locations = {0: (87.13480429958184, 131.46035514677558), 1: (71.9067902975842, 99.83029253343719),
+    #               2: (77.73349581052071, 119.17652894822236), 3: (34.78931461059261, 1.5007109517516648),
+    #               4: (38.911456566397185, 135.4659654996168), 5: (63.77012157403705, 123.31182629614602)}
 
     # Define the distance matrix as a 2D array
     d = np.zeros((len(switches), len(switches)))
@@ -90,7 +93,7 @@ def sdn_opt():
 
     m.Obj(obj)
     m.options.SOLVER = 1
-    m.solve(disp=True)
+    m.solve()
 
     tester.test_opt()
     print("Switches assignment: \n", z)
@@ -103,6 +106,9 @@ def sdn_opt():
 
     tester_min = tester_arg.test_opt(num_switches, num_controllers, d, max_load, switch_loads)
     print("Minimum distance: ", tester_min)
+
+    algorithm.cap_controller_placement(switches_amount=num_switches, distances_matrix=d)
+
 
 if __name__ == '__main__':
     sdn_opt()
