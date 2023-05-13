@@ -2,7 +2,6 @@ from gekko import GEKKO
 import numpy as np
 import random
 
-
 def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius, k_controllers):
     # Set variables
     num_switches = switches_amount
@@ -29,55 +28,43 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
     # switch_loads = switches_loads
 
     # Define the decision variables
-    z = m.Array(m.Var, (num_switches, num_controllers), lb=0, ub=1)
-    c = m.Array(m.Var, num_controllers, lb=0, ub=1)
+    z = m.Array(m.Var, (num_switches, num_controllers))
+    c = m.Array(m.Var, num_controllers)
 
-    # Initialize a binary variable z[i, j]
+    # Initialize the variables
     for i in range(num_switches):
         for j in range(num_controllers):
             z[i, j] = m.Var(lb=0, ub=1)
+    for j in range(num_controllers):
+        c[j] = m.Var(lb=0)
 
     # Define constraints
     # The loads on each controller cannot exceed its capacity
     for j in range(num_controllers):
-        m.Equation(m.sum([switch_loads[i] * z[i, j] for i in range(num_switches)]) <= max_load[j])
-
-    for j in range(num_controllers):
-        for i in range(num_switches):
-            m.Equation((m.sum([switch_loads[i] * z[i, j]]) / max_load[j]) == c[j])
-
-
+        m.Equation(m.sum([switch_loads[i] * z[i, j] for i in range(num_switches)]) <= max_load[j] * c[j])
 
     # Each switch must be assigned to exactly one controller
     for i in range(num_switches):
         m.Equation(m.sum(z[i, :]) == 1)
-    # Calculate the total number of switches assigned to controller j
 
-    # Calculate the number of controllers used
-    # Each switch must be assigned to at least one controller
-    # The equation ensures that the sum of z[i,j] for all j is at least 1
-    # for i in range(num_switches):
-    #     m.Equation(m.sum([z[i, j] for j in range(num_controllers)]) * num_controllers >= c[i])
+    # Each switch must be assigned to exactly one controller
+    for i in range(num_controllers):
+        m.Equation(m.sum(z[:, i]) <= 1)
 
-    # Calculate the total number of switches assigned to controller j
-    # The equation ensures that the sum of z[i,j] for all i is less than or equal to c[j] times the total number of switches
-    # for j in range(num_controllers):
-    #     m.Equation(m.sum([z[i, j] for i in range(num_switches)]) <= num_switches * c[j])
 
     # Distance between each switch and its assigned controller must be less than or equal to r
     for i in range(num_switches):
         for j in range(num_controllers):
             m.Equation(d[i][j] * z[i, j] <= r)
 
-    # Define the objective function to minimize the number of used controllers
-    # Define the objective function to minimize the average relative load on each controller
 
+    # Define the objective function to minimize the number of used controllers'
     obj = m.sum(c)
     m.Obj(obj)
 
     # Set solver options
     m.options.SOLVER = 1
-    # m.options.IMODE = 3
+    m.options.IMODE = 3
     m.solve()
 
 

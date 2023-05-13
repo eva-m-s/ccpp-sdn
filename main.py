@@ -11,12 +11,14 @@ def sdn_opt():
     m = GEKKO(remote=False)
 
     # Define the number of switches and controllers
-    num_switches = 4
-    num_controllers = 2
+    num_switches = 8
+    num_controllers = 4
 
     # Define the maximum load for each controller
     #max_load = [20, 30]
-    max_load = np.random.randint(20, 51, size=num_controllers)
+    #max_load = np.random.randint(20, 51, size=num_controllers)
+    max_load = np.full(num_controllers, 25)
+
 
 
     # Define the loads needed to control each switch
@@ -88,26 +90,28 @@ def sdn_opt():
         for j in range(num_controllers):
             for k in range(num_switches):
                 # obj = m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
-                obj += m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
-                #obj += m.sum([d[i][k] * p[k][j] * z[i][j]])
+                # obj += m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
+                obj += m.sum([d[i][k] * p[k][j] * z[i][j]])
 
     m.Obj(obj)
     m.options.SOLVER = 1
     m.solve()
-
-    tester.test_opt()
+    #
+    # # tester.test_opt()
     print("Switches assignment: \n", z)
     print("\nControllers placement: \n", p)
-
+    #
     if m.options.APPSTATUS == 1:  # solution successful
         print("Objective function value =", m.options.ObjFcnVal)
     else:
         print("Solution not found")
 
-    tester_min = tester_arg.test_opt(num_switches, num_controllers, d, max_load, switch_loads)
-    print("Minimum distance: ", tester_min)
+    # Tester
+    # tester_min = tester_arg.test_opt(num_switches, num_controllers, d, max_load, switch_loads)
+    # print("Minimum distance: ", tester_min)
 
-    algorithm.cap_controller_placement(switches_amount=num_switches, distances_matrix=d)
+    # Algorithm
+    algorithm.cap_controller_placement(switches_loads=switch_loads, switches_amount=num_switches, distances_matrix=d)
 
 
 if __name__ == '__main__':
