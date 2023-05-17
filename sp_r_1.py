@@ -15,17 +15,19 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
     # Define the maximum load for each controller
     # max_load = [20, 20, 20, 20,  30]
     # max_load = np.random.randint(20, 51, size=num_controllers)
-    max_load = np.full(num_controllers, 20)
+    # max_load = np.full(num_controllers, 25)
+    max_load = [1, 50, 1, 1, 30, 1, 1, 1]
 
     # Define the loads needed to control each switch
     # Make a copy of the primary array
     random_max_load = max_load.copy()
     random.shuffle(random_max_load)
     k_max_loads = random_max_load[:k_controllers]
-    switch_loads = np.random.randint(5, sum(k_max_loads) / num_switches, size=num_switches)
+    # k_max_loads = random_max_load[:4]
+    # switch_loads = np.random.randint(5, sum(k_max_loads) / num_switches, size=num_switches)
     # switch_loads = np.random.randint(1, sum(max_load)/num_switches, size=num_switches)
-    # switch_loads = [20, 11, 8, 7]
-    # switch_loads = switches_loads
+    switch_loads = [10, 10, 10, 10, 10, 10, 10, 10]
+    switch_loads = switches_loads
 
     # Define the decision variables
     z = m.Array(m.Var, (num_switches, num_controllers))
@@ -36,21 +38,21 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
         for j in range(num_controllers):
             z[i, j] = m.Var(lb=0, ub=1)
     for j in range(num_controllers):
-        c[j] = m.Var(lb=0)
+        c[j] = m.Var(lb=0, ub=1)
 
     # Define constraints
     # The loads on each controller cannot exceed its capacity
     for j in range(num_controllers):
         m.Equation(m.sum([switch_loads[i] * z[i, j] for i in range(num_switches)]) <= max_load[j] * c[j])
 
+
     # Each switch must be assigned to exactly one controller
     for i in range(num_switches):
         m.Equation(m.sum(z[i, :]) == 1)
 
-    # Each switch must be assigned to exactly one controller
-    for i in range(num_controllers):
-        m.Equation(m.sum(z[:, i]) <= 1)
-
+    # # Each switch must be assigned to exactly one controller
+    # for i in range(num_controllers):
+    #     m.Equation(m.sum(z[:, i]) <= 1)
 
     # Distance between each switch and its assigned controller must be less than or equal to r
     for i in range(num_switches):

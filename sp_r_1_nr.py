@@ -14,6 +14,7 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
 
     # Define the maximum load for each controller
     max_load = np.full(num_controllers, 25)
+    # max_load = [1, 1, 1, 50, 1, 1, 1, 1000]
 
     # Define the loads needed to control each switch
     random_max_load = max_load.copy()
@@ -21,7 +22,7 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
     k_max_loads = random_max_load[:k_controllers]
     # switch_loads = np.random.randint(5, sum(k_max_loads) / num_switches, size=num_switches)
     switch_loads = switches_loads
-
+    # switch_loads = [10, 10, 10, 10, 10, 10, 10, 10]
     # Define the decision variables
     z = m.Array(m.Var, (num_switches, num_controllers), lb=0, ub=1)
     c = m.Array(m.Var, num_controllers, lb=0, ub=1, integer=True)
@@ -36,15 +37,16 @@ def min_num_controllers(switches_loads, switches_amount, distance_matrix, radius
     # Define constraints
     # The loads on each controller cannot exceed its capacity
     for j in range(num_controllers):
-        m.Equation(m.sum([switch_loads[i] * z[i, j] for i in range(num_switches)]) <= max_load[j])
+        m.Equation(m.sum([switch_loads[i] * z[i, j] for i in range(num_switches)]) <= max_load[j] * c[j])
 
     # Each switch must be assigned to exactly one controller
     for i in range(num_switches):
         m.Equation(m.sum(z[i, :]) == 1)
 
-    # Each controller can only be activated if it is assigned to at least one switch
-    for j in range(num_controllers):
-        m.Equation(m.sum(z[:, j]) <= num_switches * c[j])
+    # # Each controller can only be activated if it is assigned to at least one switch
+    # for j in range(num_controllers):
+    #     m.Equation(m.sum(z[:, j]) <= num_switches * c[j])
+
 
     # Distance between each switch and its assigned controller must be less than or equal to r
     for i in range(num_switches):

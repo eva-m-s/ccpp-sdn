@@ -12,7 +12,7 @@ def sdn_opt():
 
     # Define the number of switches and controllers
     num_switches = 8
-    num_controllers = 4
+    num_controllers = 3
 
     # Define the maximum load for each controller
     #max_load = [20, 30]
@@ -93,18 +93,18 @@ def sdn_opt():
                 # obj += m.max2(m.sum([d[i][k] * p[k][j] * z[i][j]]), 0)
                 obj += m.sum([d[i][k] * p[k][j] * z[i][j]])
 
-    m.Obj(obj)
-    m.options.SOLVER = 1
-    m.solve()
-    #
-    # # tester.test_opt()
-    print("Switches assignment: \n", z)
-    print("\nControllers placement: \n", p)
-    #
-    if m.options.APPSTATUS == 1:  # solution successful
-        print("Objective function value =", m.options.ObjFcnVal)
-    else:
-        print("Solution not found")
+    # m.Obj(obj)
+    # m.options.SOLVER = 1
+    # m.solve()
+    # #
+    # # # tester.test_opt()
+    # print("Switches assignment: \n", z)
+    # print("\nControllers placement: \n", p)
+    # #
+    # if m.options.APPSTATUS == 1:  # solution successful
+    #     print("Objective function value =", m.options.ObjFcnVal)
+    # else:
+    #     print("Solution not found")
 
     # Tester
     # tester_min = tester_arg.test_opt(num_switches, num_controllers, d, max_load, switch_loads)
